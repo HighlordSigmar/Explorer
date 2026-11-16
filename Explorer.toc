@@ -2,7 +2,7 @@
 ## Title: |cff7fd0ffExplorer
 ## Notes: World map: coordinates, mouse wheel zoom, dungeon / raid / transport markers and zone level ranges. /explorer for options.
 ## Author: Made with Claude
-## Version: 1.0.0
+## Version: 1.0.1
 ## SavedVariables: Explorer_DB
 ## OptionalDeps: InstanceJournal, ShaguTweaks, ShaguTweaks-extras
 

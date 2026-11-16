@@ -25,10 +25,15 @@ Lua 5.0 can be built from github.com/lua/lua tag `v5.0` (leave out linit.c).
 - Core wraps the globals `WorldMapButton_OnUpdate` (every frame, called by name
   from WorldMapFrame.xml) and `WorldMapFrame_Update` (map redrawn) at
   VARIABLES_LOADED, after every addon has loaded.
-- Zoom: `ExplorerScrollFrame` (level 1) holds WorldMapDetailFrame as its scroll
-  child; WorldMapButton is re-parented to the picture (level 0) so pins move with
-  it. Plain clicks are passed on as `WorldMapButton_OnClick(button, "WorldMapButton")`
-  so the click position is read from the moved/scaled button. Layout numbers
+- Zoom: `ExplorerScrollFrame` holds WorldMapDetailFrame as its scroll child and
+  takes no mouse; WorldMapButton is re-parented to the picture (level 2) and gets
+  the wheel and the drag (OnMouseDown/Up wrapped), so clicks reach it natively.
+  OctoWoW's `WorldMapButton_OnClick(mouseButton, button)` indexes `button` as a
+  frame (passing its name errors at WorldMapFrame.lua:471) and divides the cursor
+  by `button:GetScale()`. Not zoomed, the game's OnClick runs untouched; zoomed,
+  Explorer passes a stand-in whose GetScale/GetEffectiveScale return the
+  button's effective scale, so the click lands where the cursor is. The click
+  that ends a drag is swallowed. Layout numbers
   (1002x668 at TOP -70, small map 702x468 at -24 and zoom 0.7, -48 / -24 with
   ShaguTweaks) are Magnify's, which work on OctoWoW.
 - Markers are children of WorldMapButton, sized `base / ZoomFactor()` so they

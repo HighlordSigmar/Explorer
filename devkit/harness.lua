@@ -65,6 +65,7 @@ function Frame:CreateTexture(name) return NewFrame("Texture", name, self) end
 function Frame:CreateFontString(name) return NewFrame("FontString", name, self) end
 function Frame:SetTexCoord(a, b, c, d, e, f, g, h) self.coords = { a, b, c, d, e, f, g, h } end
 function Frame:GetLeft() return self.left or 0 end
+function Frame:GetCenter() return (self.left or 0) + self.w / 2, (self.top or 0) - self.h / 2 end
 function Frame:GetTop() return self.top or 0 end
 function Frame:SetHorizontalScroll(v) self.hs = v end
 function Frame:GetHorizontalScroll() return self.hs or 0 end
@@ -146,7 +147,21 @@ function WorldMapButton_OnUpdate(elapsed)
   if not WorldMapFrame.poiHighlight then WorldMapFrameAreaLabel:SetText(WorldMapFrame.areaName) end
 end
 function WorldMapFrame_Update() log("WorldMapFrame_Update") end
-function WorldMapButton_OnClick(button, name) log("WorldMapButton_OnClick " .. tostring(button) .. " " .. tostring(name)) end
+-- like the game's: the second argument is the button frame itself
+function WorldMapButton_OnClick(mouseButton, button)
+  if mouseButton == "LeftButton" then
+    if not button then button = this end
+    local x, y = GetCursorPosition()
+    x = x / button:GetScale()
+    y = y / button:GetScale()
+    local cx, cy = button:GetCenter()
+    local w, h = button:GetWidth(), button:GetHeight()
+    log(string.format("ProcessMapClick %.3f %.3f", (x - (cx - w / 2)) / w, (cy + h / 2 - y) / h))
+  else
+    log("ZoomOut")
+  end
+end
+WorldMapButton.scripts.OnClick = function() WorldMapButton_OnClick(arg1) end  -- the XML
 
 -- run a script with this/arg1 set, like the game does
 function Fire(frame, script, a1)

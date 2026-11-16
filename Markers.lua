@@ -79,7 +79,7 @@ local function OnClick()
       IJ_ShowEncounter(inst)
       WorldMapFrame:Hide()
     else
-      WorldMapButton_OnClick("RightButton", "WorldMapButton")   -- zoom out, as usual
+      WorldMapButton_OnClick("RightButton")   -- zoom out, as usual
     end
     return
   end

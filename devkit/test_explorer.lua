@@ -71,6 +71,10 @@ MAP_C, MAP_Z = 2, 32; WorldMapFrame_Update()
 LOG = {}
 Fire(ExplorerPin1, "OnClick", "RightButton")
 check(LOG[1] == "IJ page The Deadmines", "right-click opens InstanceJournal")
+IJ_ShowEncounter = nil
+LOG = {}
+Fire(ExplorerPin1, "OnClick", "RightButton")
+check(LOG[1] == "ZoomOut", "without InstanceJournal right-click on a marker zooms out")
 
 print("== transports")
 MAP_C, MAP_Z = 2, 28; WorldMapFrame:Show(); WorldMapFrame_Update()  -- Stormwind City
@@ -90,38 +94,55 @@ E.db.transports = "mine"
 print("== zoom")
 MAP_C, MAP_Z = 2, 38; WorldMapFrame_Update()
 local S = ExplorerScrollFrame
+local B = WorldMapButton
+check(S.scripts.OnMouseWheel == nil and B.scripts.OnMouseWheel ~= nil, "the wheel is on the map button, the scroll frame takes no mouse")
+check(B.level == 2 and ExplorerPin1.level == 8, "map button under the pins")
 S.left, S.top = 0, 668
 CURSOR_X, CURSOR_Y = 501, 334        -- middle of the map
-Fire(S, "OnMouseWheel", 1)
+Fire(B, "OnMouseWheel", 1)
 check(math.abs(WorldMapDetailFrame.scale - 1.25) < 0.001, "wheel up zooms to 1.25")
 check(S.zoomed, "zoomed")
 print(string.format("   scroll after zoom at the middle: h=%.1f v=%.1f", S.hs, S.vs))
 check(math.abs(-S.hs - (501 - 501 / 1.25)) < 0.01, "zoomed around the cursor (horizontal)")
 check(math.abs(ExplorerPin1.w - 26 / 1.25) < 0.01, "markers keep their size on screen")
-for i = 1, 20 do Fire(S, "OnMouseWheel", 1) end
+for i = 1, 20 do Fire(B, "OnMouseWheel", 1) end
 check(math.abs(WorldMapDetailFrame.scale - 3) < 0.001, "zoom stops at the most zoom (3)")
-for i = 1, 20 do Fire(S, "OnMouseWheel", -1) end
+for i = 1, 20 do Fire(B, "OnMouseWheel", -1) end
 check(WorldMapDetailFrame.scale == 1 and not S.zoomed, "zoomed all the way out")
 check(S.hs == 0 and S.vs == 0, "and scrolled back to the corner")
 local shagu = 0
 WorldMapFrame:SetScript("OnMouseWheel", function() if this == WorldMapFrame then shagu = shagu + arg1 end end)
-CTRL = true; Fire(S, "OnMouseWheel", 1); CTRL = nil
+CTRL = true; Fire(B, "OnMouseWheel", 1); CTRL = nil
 check(shagu == 1 and WorldMapDetailFrame.scale == 1, "Ctrl + wheel goes to ShaguTweaks' map window, no zoom")
 
-print("== panning and clicks")
-Fire(S, "OnMouseWheel", 1); Fire(S, "OnMouseWheel", 1)
+print("== clicks")
+B.left, B.top = 0, 668
+CURSOR_X, CURSOR_Y = 250.5, 334
+LOG = {}
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+check(LOG[1] == "ProcessMapClick 0.250 0.500", "not zoomed: the game's own click (" .. tostring(LOG[1]) .. ")")
+LOG = {}
+Fire(B, "OnClick", "RightButton")
+check(LOG[1] == "ZoomOut", "right-click zooms the map out")
+Fire(B, "OnMouseWheel", 1)
+CURSOR_X, CURSOR_Y = 250.5 * 1.25, 334 * 1.25   -- same spot on the picture, drawn 25% bigger
+LOG = {}
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+check(LOG[1] == "ProcessMapClick 0.250 0.500", "zoomed: the click lands on the same spot (" .. tostring(LOG[1]) .. ")")
+
+print("== panning")
 local h0 = S.hs
 MOUSE_DOWN = true
-Fire(S, "OnMouseDown", "LeftButton")
+Fire(B, "OnMouseDown", "LeftButton")
 CURSOR_X = CURSOR_X - 100
 Fire(S, "OnUpdate")
 check(S.moved and S.hs < h0, "dragging left moves the map left")
-LOG = {}
-Fire(S, "OnMouseUp", "LeftButton")
-check(LOG[1] == nil, "a drag is not a click")
 MOUSE_DOWN = false
-Fire(S, "OnMouseUp", "LeftButton")
-check(LOG[1] == "WorldMapButton_OnClick LeftButton WorldMapButton", "a plain click goes to the map")
+LOG = {}
+Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+check(LOG[1] == nil, "the click ending a drag does nothing")
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+check(LOG[1] ~= nil and string.find(LOG[1], "ProcessMapClick"), "the next plain click works")
 MAP_C, MAP_Z = 2, 13; WorldMapFrame_Update()
 check(WorldMapDetailFrame.scale == 1, "another map starts zoomed out")
 

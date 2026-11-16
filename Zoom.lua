@@ -88,6 +88,7 @@ local function OnWheel()
 end
 
 local function OnMouseDown()
+  scroll.dragged = false
   if arg1 == "LeftButton" and scroll.zoomed then
     local x, y = GetCursorPosition()
     scroll.panning = true
@@ -98,12 +99,35 @@ local function OnMouseDown()
 end
 
 local function OnMouseUp()
-  local wasMoved = scroll.moved
+  -- the click that ends a drag must not open a zone
+  if scroll.moved then scroll.dragged = true end
   scroll.panning = false
   scroll.moved = false
-  if not wasMoved then
-    -- a plain click: the map does what it always does (open a zone, zoom out)
-    WorldMapButton_OnClick(arg1, "WorldMapButton")
+end
+
+-- The game works out where you clicked from the map button's size and
+-- scale. Zoomed in, the button's own scale is not the one it is drawn at,
+-- so the click is handed over through a stand-in that answers with the
+-- scale it really has on screen.
+local ClickButton = setmetatable({}, { __index = function(t, k)
+  return function(self, a1, a2, a3, a4) return WorldMapButton[k](WorldMapButton, a1, a2, a3, a4) end
+end })
+function ClickButton:GetScale() return WorldMapButton:GetEffectiveScale() end
+function ClickButton:GetEffectiveScale() return WorldMapButton:GetEffectiveScale() end
+
+local function WrapClick(oldClick)
+  return function()
+    if scroll.dragged or scroll.moved then
+      scroll.dragged = false
+      return
+    end
+    if scroll.zoomed then
+      WorldMapButton_OnClick(arg1, ClickButton)
+    elseif oldClick then
+      oldClick()                       -- not zoomed: exactly what the game does
+    else
+      WorldMapButton_OnClick(arg1)
+    end
   end
 end
 
@@ -239,20 +263,29 @@ E.Module(function()
   if not WorldMapDetailFrame or not WorldMapButton or not WorldMapFrame then return end
   active = true
 
+  -- the scroll frame only holds the picture; the mouse stays with the
+  -- game's map button, so clicks reach the map the way they always do
   scroll = CreateFrame("ScrollFrame", "ExplorerScrollFrame", WorldMapFrame)
-  -- level 1: above the map button (0), below every map pin, so that
-  -- InstanceJournal's pins and ours can still be clicked
   scroll:SetFrameLevel(1)
-  scroll:EnableMouse(true)
-  scroll:EnableMouseWheel(true)
-  scroll:SetScript("OnMouseWheel", OnWheel)
-  scroll:SetScript("OnMouseDown", OnMouseDown)
-  scroll:SetScript("OnMouseUp", OnMouseUp)
+  scroll:EnableMouse(false)
   scroll:SetScript("OnUpdate", OnUpdate)
   E.scroll = scroll
 
   WorldMapButton:SetParent(Detail())
-  WorldMapButton:SetFrameLevel(0)
+  WorldMapButton:SetFrameLevel(2)
+  WorldMapButton:EnableMouseWheel(true)
+  WorldMapButton:SetScript("OnMouseWheel", OnWheel)
+  local oldDown = WorldMapButton:GetScript("OnMouseDown")
+  WorldMapButton:SetScript("OnMouseDown", function()
+    if oldDown then oldDown() end
+    OnMouseDown()
+  end)
+  local oldUp = WorldMapButton:GetScript("OnMouseUp")
+  WorldMapButton:SetScript("OnMouseUp", function()
+    OnMouseUp()
+    if oldUp then oldUp() end
+  end)
+  WorldMapButton:SetScript("OnClick", WrapClick(WorldMapButton:GetScript("OnClick")))
 
   -- the small and big map buttons (OctoWoW)
   if WorldMapFrame_Minimize then
