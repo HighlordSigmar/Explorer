@@ -6,7 +6,7 @@
 Explorer = Explorer or {}
 local E = Explorer
 
-E.version = "1.0.1"
+E.version = "1.1.0"
 E.TEXTURES = "Interface\\AddOns\\Explorer\\Textures\\"
 
 -- features another loaded addon already provides are switched off here
@@ -21,6 +21,7 @@ local DEFAULTS = {
   arrowScale = 1,
   markers = true,
   iconScale = 1,
+  icons = "retail",       -- "retail": retail icons from another addon if found, "explorer"
   show = { dungeon = true, raid = true, worldboss = true, boat = true, zeppelin = true, tram = true },
   transports = "mine",    -- "mine": your faction and neutral ones, "all"
   levels = true,          -- "Westfall (10-20)" when hovering a zone
@@ -224,6 +225,10 @@ SlashCmdList["EXPLORER"] = function(msg)
     E.db.transports = (E.db.transports == "all") and "mine" or "all"
     E.Print("Transports shown: " .. (E.db.transports == "all" and "all" or "your faction and neutral"))
     E.Apply()
+  elseif msg == "icons" then
+    E.db.icons = (E.db.icons == "explorer") and "retail" or "explorer"
+    E.Apply()
+    E.Print("Marker icons: " .. E.IconSource())
   elseif msg == "reset" then
     if E.ResetZoom then E.ResetZoom() end
     E.Print("Map zoom reset.")
@@ -231,6 +236,7 @@ SlashCmdList["EXPLORER"] = function(msg)
     E.Print("/explorer - options window")
     E.Print("/explorer coords | zoom | markers | levels | info - turn a part on/off")
     E.Print("/explorer transports - your faction's transports or all of them")
+    E.Print("/explorer icons - retail icons (from another addon) or Explorer's own")
     E.Print("/explorer reset - zoom the map back out")
   end
 end

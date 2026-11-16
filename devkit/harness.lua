@@ -113,6 +113,11 @@ function SetMapZoom(c, z) log("SetMapZoom " .. tostring(c) .. " " .. tostring(z)
 function GetPlayerMapPosition() return PLAYER_X, PLAYER_Y end
 function GetCursorPosition() return CURSOR_X, CURSOR_Y end
 function IsAddOnLoaded(n) return LOADED[n] end
+INSTALLED = {}
+function GetAddOnInfo(n)
+  if LOADED[n] or INSTALLED[n] then return n, n, "", LOADED[n] and 1 or nil, 1, LOADED[n] and nil or "DISABLED" end
+  return nil, nil, nil, nil, nil, "MISSING"
+end
 function IsMouseButtonDown() return MOUSE_DOWN end
 function IsControlKeyDown() return CTRL end
 function IsShiftKeyDown() return SHIFT end

@@ -50,7 +50,11 @@ print("== markers in Westfall")
 OpenMap()
 check(ExplorerPin1 and ExplorerPin1.shown, "a pin is shown")
 check(ExplorerPin1.pin.poi == "The Deadmines", "it is the Deadmines")
-check(ExplorerPin1.icon.texture == "Interface\\AddOns\\Explorer\\Textures\\dungeon", "dungeon icon")
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\InstanceJournal\\media\\ui\\dungeon-icon", "InstanceJournal's dungeon icon (" .. tostring(ExplorerPin1.icon.texture) .. ")")
+this = ExplorerPin1; Fire(ExplorerPin1, "OnEnter")
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\InstanceJournal\\media\\ui\\dungeon-icon-selected", "hovered icon")
+Fire(ExplorerPin1, "OnLeave")
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\InstanceJournal\\media\\ui\\dungeon-icon", "back after hover")
 check(ExplorerPin1.point[4] == 0.425 * 1002, "placed at 42.5% across")
 check(not ExplorerPin2 or not ExplorerPin2.shown, "only one pin in Westfall")
 IJ_PINS = 0
@@ -196,6 +200,17 @@ ARROW_MODEL.facing = 0
 Tick()
 check(ExplorerPlayerArrow.shown ~= false and WorldMapPlayer.point[4] == 501, "arrow on the player")
 check(ExplorerPlayerArrow.coords ~= nil, "arrow turned")
+
+print("== icons")
+INSTALLED.ModernMapMarkers = true    -- folder there, addon turned off
+E.Apply()
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\ModernMapMarkers\\Textures\\dungeon", "ModernMapMarkers' icons when its folder is there, even turned off")
+check(not E.blocked.markers, "a turned-off ModernMapMarkers does not stop Explorer's markers")
+SlashCmdList.EXPLORER("icons")
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\Explorer\\Textures\\dungeon", "/explorer icons: Explorer's own")
+SlashCmdList.EXPLORER("icons")
+INSTALLED.ModernMapMarkers = nil
+E.Apply()
 
 print("== options and commands")
 SlashCmdList.EXPLORER("")

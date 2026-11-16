@@ -107,7 +107,7 @@ end
 
 local function Build()
   panel = CreateFrame("Frame", "ExplorerOptions", UIParent)
-  panel:SetWidth(580); panel:SetHeight(440)
+  panel:SetWidth(580); panel:SetHeight(462)
   panel:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
   panel:SetFrameStrata("DIALOG")
   panel:SetBackdrop({
@@ -148,7 +148,9 @@ local function Build()
   Check(panel, "Tram", "show.tram", x + 136, -320)
   Cycle(panel, "Transports", "transports",
     { { "mine", "your faction" }, { "all", "all of them" } }, x + 4, -348)
-  Slider(panel, "Marker size", "iconScale", 0.5, 2, 0.1, x + 4, -394)
+  Cycle(panel, "Icons", "icons",
+    { { "retail", "retail (if found)" }, { "explorer", "Explorer's own" } }, x + 4, -374)
+  Slider(panel, "Marker size", "iconScale", 0.5, 2, 0.1, x + 4, -414)
 
   -- right column: zones
   x = 300

@@ -51,4 +51,6 @@ MODERNMAPMARKERS by tilr and Heallios - https://github.com/tilare/ModernMapMarke
   checked against its marker list.
 
 The map icons in Textures/ are original artwork drawn for Explorer by
-devkit/make_icons.py.
+devkit/make_icons.py. Explorer contains no Blizzard artwork: when
+ModernMapMarkers or InstanceJournal is installed, their own icon files are
+shown from their folders.

@@ -18,6 +18,52 @@ local FACTION_NAME = { A = "Alliance", H = "Horde", N = "Neutral" }
 
 local function IJ() return IJDB and IJLib and IJDB.DG and IJDB.R end
 
+----------------------------------------------------------------------------
+-- icons
+--
+-- Explorer ships its own icons. The retail-style ones belong to Blizzard,
+-- so they are not in Explorer; when another addon on this PC has them,
+-- Explorer shows those files from that addon's folder instead.
+
+local MMM = "Interface\\AddOns\\ModernMapMarkers\\Textures\\"
+local IJM = "Interface\\AddOns\\InstanceJournal\\media\\ui\\"
+
+-- an addon's folder is there (on or off in the addon list)
+local function Installed(name)
+  if IsAddOnLoaded(name) then return true end
+  if not GetAddOnInfo then return false end
+  local ok, found, _, _, _, _, reason = pcall(GetAddOnInfo, name)
+  return ok and found and reason ~= "MISSING"
+end
+
+local icons   -- [kind] = { normal, hover }
+
+function E.PickIcons()
+  icons = {}
+  for _, kind in ipairs({ "dungeon", "raid", "worldboss", "boat", "zeppelin", "tram" }) do
+    icons[kind] = { E.TEXTURES .. kind, E.TEXTURES .. kind .. "-highlight" }
+  end
+  if E.db.icons == "explorer" then return end
+  if Installed("ModernMapMarkers") then
+    icons.dungeon = { MMM .. "dungeon", MMM .. "dungeon-highlight" }
+    icons.raid = { MMM .. "raid", MMM .. "raid-highlight" }
+    icons.worldboss = { MMM .. "worldboss", MMM .. "worldboss" }
+    icons.boat = { MMM .. "boat", MMM .. "boat" }
+    icons.zeppelin = { MMM .. "zepp", MMM .. "zepp" }
+    icons.tram = { MMM .. "tram", MMM .. "tram" }
+  elseif Installed("InstanceJournal") then
+    icons.dungeon = { IJM .. "dungeon-icon", IJM .. "dungeon-icon-selected" }
+    icons.raid = { IJM .. "raid-icon", IJM .. "raid-icon-hovered" }
+  end
+end
+
+function E.IconSource()
+  if E.db.icons == "explorer" then return "Explorer's own" end
+  if Installed("ModernMapMarkers") then return "ModernMapMarkers' (retail)" end
+  if Installed("InstanceJournal") then return "InstanceJournal's for dungeons and raids (retail), Explorer's for the rest" end
+  return "Explorer's own (no addon with retail icons found)"
+end
+
 local function IJInstance(id)
   if not IJ() or not id then return nil end
   return IJDB.DG[id] or IJDB.R[id]
@@ -35,6 +81,7 @@ end
 
 local function OnEnter()
   local p = this.pin
+  if this.hover then this.icon:SetTexture(this.hover) end
   local tip = WorldMapTooltip
   tip:SetOwner(this, "ANCHOR_RIGHT")
   local kind = p[3]
@@ -62,6 +109,7 @@ local function OnEnter()
 end
 
 local function OnLeave()
+  if this.normal then this.icon:SetTexture(this.normal) end
   WorldMapTooltip:Hide()
 end
 
@@ -137,8 +185,10 @@ local function Show(list, c)
       local b = GetPin(shown)
       b.pin = p
       b.continent = c
-      b.icon:SetTexture(E.TEXTURES .. p[3])
-      b:SetHighlightTexture(E.TEXTURES .. p[3] .. "-highlight")
+      if not icons then E.PickIcons() end
+      local icon = icons[p[3]]
+      b.normal, b.hover = icon[1], icon[2]
+      b.icon:SetTexture(b.normal)
       Place(b, p)
       b:Show()
     end
@@ -185,7 +235,10 @@ local function HookIJ()
   end
 end
 
-table.insert(E.appliers, function() if E.RefreshMarkers then E.RefreshMarkers() end end)
+table.insert(E.appliers, function()
+  icons = nil
+  if E.RefreshMarkers then E.RefreshMarkers() end
+end)
 
 E.Module(function()
   if E.blocked.markers then return end
