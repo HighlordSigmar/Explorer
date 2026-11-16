@@ -88,7 +88,6 @@ local function OnWheel()
 end
 
 local function OnMouseDown()
-  scroll.dragged = false
   if arg1 == "LeftButton" and scroll.zoomed then
     local x, y = GetCursorPosition()
     scroll.panning = true
@@ -98,11 +97,11 @@ local function OnMouseDown()
   end
 end
 
-local function OnMouseUp()
-  -- the click that ends a drag must not open a zone
-  if scroll.moved then scroll.dragged = true end
+local function EndDrag()
+  local dragged = scroll.moved
   scroll.panning = false
   scroll.moved = false
+  return dragged
 end
 
 -- The game works out where you clicked from the map button's size and
@@ -115,16 +114,15 @@ end })
 function ClickButton:GetScale() return WorldMapButton:GetEffectiveScale() end
 function ClickButton:GetEffectiveScale() return WorldMapButton:GetEffectiveScale() end
 
-local function WrapClick(oldClick)
+-- the map button opens zones (left) and zooms out (right) when the mouse
+-- button comes up; that stays the game's, once per click
+local function WrapMouseUp(oldUp)
   return function()
-    if scroll.dragged or scroll.moved then
-      scroll.dragged = false
-      return
-    end
-    if scroll.zoomed then
+    if EndDrag() then return end            -- the end of a drag is no click
+    if scroll.zoomed and arg1 == "LeftButton" then
       WorldMapButton_OnClick(arg1, ClickButton)
-    elseif oldClick then
-      oldClick()                       -- not zoomed: exactly what the game does
+    elseif oldUp then
+      oldUp()                                -- exactly what the game does
     else
       WorldMapButton_OnClick(arg1)
     end
@@ -280,12 +278,7 @@ E.Module(function()
     if oldDown then oldDown() end
     OnMouseDown()
   end)
-  local oldUp = WorldMapButton:GetScript("OnMouseUp")
-  WorldMapButton:SetScript("OnMouseUp", function()
-    OnMouseUp()
-    if oldUp then oldUp() end
-  end)
-  WorldMapButton:SetScript("OnClick", WrapClick(WorldMapButton:GetScript("OnClick")))
+  WorldMapButton:SetScript("OnMouseUp", WrapMouseUp(WorldMapButton:GetScript("OnMouseUp")))
 
   -- the small and big map buttons (OctoWoW)
   if WorldMapFrame_Minimize then

@@ -6,7 +6,7 @@
 Explorer = Explorer or {}
 local E = Explorer
 
-E.version = "1.1.1"
+E.version = "1.1.2"
 E.TEXTURES = "Interface\\AddOns\\Explorer\\Textures\\"
 
 -- features another loaded addon already provides are switched off here

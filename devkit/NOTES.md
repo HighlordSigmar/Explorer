@@ -27,13 +27,14 @@ Lua 5.0 can be built from github.com/lua/lua tag `v5.0` (leave out linit.c).
   VARIABLES_LOADED, after every addon has loaded.
 - Zoom: `ExplorerScrollFrame` holds WorldMapDetailFrame as its scroll child and
   takes no mouse; WorldMapButton is re-parented to the picture (level 2) and gets
-  the wheel and the drag (OnMouseDown/Up wrapped), so clicks reach it natively.
-  OctoWoW's `WorldMapButton_OnClick(mouseButton, button)` indexes `button` as a
-  frame (passing its name errors at WorldMapFrame.lua:471) and divides the cursor
-  by `button:GetScale()`. Not zoomed, the game's OnClick runs untouched; zoomed,
-  Explorer passes a stand-in whose GetScale/GetEffectiveScale return the
-  button's effective scale, so the click lands where the cursor is. The click
-  that ends a drag is swallowed. Layout numbers
+  the wheel and the drag. In WorldMapFrame.xml the map button has no OnClick: it
+  calls `WorldMapButton_OnClick(arg1)` from OnMouseUp (left = ProcessMapClick,
+  right = zoom out one level). Explorer wraps only OnMouseUp: the end of a drag
+  does nothing; zoomed in, a left click goes through a stand-in button whose
+  GetScale/GetEffectiveScale return the real effective scale (the game divides
+  the cursor by `button:GetScale()`, and indexes `button` as a frame - passing a
+  name errors at WorldMapFrame.lua:471); everything else is the game's own
+  OnMouseUp, once. Adding an OnClick as well made right-click zoom out twice. Layout numbers
   (1002x668 at TOP -70, small map 702x468 at -24 and zoom 0.7, -48 / -24 with
   ShaguTweaks) are Magnify's, which work on OctoWoW.
 - Markers are children of WorldMapButton, sized `base / ZoomFactor()` so they

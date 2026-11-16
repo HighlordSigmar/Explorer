@@ -123,16 +123,24 @@ print("== clicks")
 B.left, B.top = 0, 668
 CURSOR_X, CURSOR_Y = 250.5, 334
 LOG = {}
-Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
-check(LOG[1] == "ProcessMapClick 0.250 0.500", "not zoomed: the game's own click (" .. tostring(LOG[1]) .. ")")
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton")
+check(LOG[1] == "ProcessMapClick 0.250 0.500" and LOG[2] == nil, "not zoomed: the game's own click, once (" .. tostring(LOG[1]) .. ")")
+check(B.scripts.OnClick == nil, "no OnClick added to the map button")
+MAP_C, MAP_Z = 2, 38
 LOG = {}
-Fire(B, "OnClick", "RightButton")
-check(LOG[1] == "ZoomOut", "right-click zooms the map out")
+Fire(B, "OnMouseDown", "RightButton"); Fire(B, "OnMouseUp", "RightButton")
+check(MAP_C == 2 and MAP_Z == 0, "right-click in a zone: up to the continent (" .. MAP_C .. ":" .. MAP_Z .. ")")
+Fire(B, "OnMouseDown", "RightButton"); Fire(B, "OnMouseUp", "RightButton")
+check(MAP_C == 0, "right-click on the continent: up to the world")
+local outs = 0
+for _, l in ipairs(LOG) do if l == "ZoomOut" then outs = outs + 1 end end
+check(outs == 2, "one zoom out per right-click (" .. outs .. ")")
+MAP_C, MAP_Z = 2, 13; WorldMapFrame_Update()
 Fire(B, "OnMouseWheel", 1)
 CURSOR_X, CURSOR_Y = 250.5 * 1.25, 334 * 1.25   -- same spot on the picture, drawn 25% bigger
 LOG = {}
-Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
-check(LOG[1] == "ProcessMapClick 0.250 0.500", "zoomed: the click lands on the same spot (" .. tostring(LOG[1]) .. ")")
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton")
+check(LOG[1] == "ProcessMapClick 0.250 0.500" and LOG[2] == nil, "zoomed: the click lands on the same spot, once (" .. tostring(LOG[1]) .. ")")
 
 print("== panning")
 local h0 = S.hs
@@ -143,11 +151,11 @@ Fire(S, "OnUpdate")
 check(S.moved and S.hs < h0, "dragging left moves the map left")
 MOUSE_DOWN = false
 LOG = {}
-Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+Fire(B, "OnMouseUp", "LeftButton")
 check(LOG[1] == nil, "the click ending a drag does nothing")
-Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton"); Fire(B, "OnClick", "LeftButton")
+Fire(B, "OnMouseDown", "LeftButton"); Fire(B, "OnMouseUp", "LeftButton")
 check(LOG[1] ~= nil and string.find(LOG[1], "ProcessMapClick"), "the next plain click works")
-MAP_C, MAP_Z = 2, 13; WorldMapFrame_Update()
+MAP_C, MAP_Z = 2, 12; WorldMapFrame_Update()
 check(WorldMapDetailFrame.scale == 1, "another map starts zoomed out")
 
 print("== coordinates")

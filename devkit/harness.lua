@@ -164,9 +164,11 @@ function WorldMapButton_OnClick(mouseButton, button)
     log(string.format("ProcessMapClick %.3f %.3f", (x - (cx - w / 2)) / w, (cy + h / 2 - y) / h))
   else
     log("ZoomOut")
+    if GetCurrentMapZone() ~= 0 then SetMapZoom(GetCurrentMapContinent()) else SetMapZoom(0) end
   end
 end
-WorldMapButton.scripts.OnClick = function() WorldMapButton_OnClick(arg1) end  -- the XML
+-- WorldMapFrame.xml: the map button reacts on mouse up, it has no OnClick
+WorldMapButton.scripts.OnMouseUp = function() WorldMapButton_OnClick(arg1) end
 
 -- run a script with this/arg1 set, like the game does
 function Fire(frame, script, a1)
