@@ -206,10 +206,14 @@ INSTALLED.ModernMapMarkers = true    -- folder there, addon turned off
 E.Apply()
 check(ExplorerPin1.icon.texture == "Interface\\AddOns\\ModernMapMarkers\\Textures\\dungeon", "ModernMapMarkers' icons when its folder is there, even turned off")
 check(not E.blocked.markers, "a turned-off ModernMapMarkers does not stop Explorer's markers")
+INSTALLED.ExplorerIcons = true
+E.Apply()
+check(ExplorerPin1.icon.texture == "Interface\\AddOns\\ExplorerIcons\\dungeon", "your own ExplorerIcons folder comes first")
 SlashCmdList.EXPLORER("icons")
 check(ExplorerPin1.icon.texture == "Interface\\AddOns\\Explorer\\Textures\\dungeon", "/explorer icons: Explorer's own")
 SlashCmdList.EXPLORER("icons")
 INSTALLED.ModernMapMarkers = nil
+INSTALLED.ExplorerIcons = nil
 E.Apply()
 
 print("== options and commands")

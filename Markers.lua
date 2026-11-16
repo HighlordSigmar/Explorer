@@ -26,6 +26,7 @@ local function IJ() return IJDB and IJLib and IJDB.DG and IJDB.R end
 -- Explorer shows those files from that addon's folder instead.
 
 local MMM = "Interface\\AddOns\\ModernMapMarkers\\Textures\\"
+local LOCAL = "Interface\\AddOns\\ExplorerIcons\\"   -- your own copy, icons only
 local IJM = "Interface\\AddOns\\InstanceJournal\\media\\ui\\"
 
 -- an addon's folder is there (on or off in the addon list)
@@ -44,13 +45,14 @@ function E.PickIcons()
     icons[kind] = { E.TEXTURES .. kind, E.TEXTURES .. kind .. "-highlight" }
   end
   if E.db.icons == "explorer" then return end
-  if Installed("ModernMapMarkers") then
-    icons.dungeon = { MMM .. "dungeon", MMM .. "dungeon-highlight" }
-    icons.raid = { MMM .. "raid", MMM .. "raid-highlight" }
-    icons.worldboss = { MMM .. "worldboss", MMM .. "worldboss" }
-    icons.boat = { MMM .. "boat", MMM .. "boat" }
-    icons.zeppelin = { MMM .. "zepp", MMM .. "zepp" }
-    icons.tram = { MMM .. "tram", MMM .. "tram" }
+  local dir = (Installed("ExplorerIcons") and LOCAL) or (Installed("ModernMapMarkers") and MMM)
+  if dir then
+    icons.dungeon = { dir .. "dungeon", dir .. "dungeon-highlight" }
+    icons.raid = { dir .. "raid", dir .. "raid-highlight" }
+    icons.worldboss = { dir .. "worldboss", dir .. "worldboss" }
+    icons.boat = { dir .. "boat", dir .. "boat" }
+    icons.zeppelin = { dir .. "zepp", dir .. "zepp" }
+    icons.tram = { dir .. "tram", dir .. "tram" }
   elseif Installed("InstanceJournal") then
     icons.dungeon = { IJM .. "dungeon-icon", IJM .. "dungeon-icon-selected" }
     icons.raid = { IJM .. "raid-icon", IJM .. "raid-icon-hovered" }
@@ -59,6 +61,7 @@ end
 
 function E.IconSource()
   if E.db.icons == "explorer" then return "Explorer's own" end
+  if Installed("ExplorerIcons") then return "retail (ExplorerIcons folder)" end
   if Installed("ModernMapMarkers") then return "ModernMapMarkers' (retail)" end
   if Installed("InstanceJournal") then return "InstanceJournal's for dungeons and raids (retail), Explorer's for the rest" end
   return "Explorer's own (no addon with retail icons found)"
